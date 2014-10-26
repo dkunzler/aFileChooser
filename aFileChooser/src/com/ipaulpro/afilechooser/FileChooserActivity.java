@@ -16,6 +16,7 @@
 
 package com.ipaulpro.afilechooser;
 
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -49,6 +50,8 @@ public class FileChooserActivity extends FragmentActivity implements
     public static final String PATH = "path";
     public static final String EXTRA_FILTER_INCLUDE_EXTENSIONS =
             "com.ipaulpro.afilechooser.EXTRA_FILTER_INCLUDE_EXTENSIONS";
+    public static final String EXTRA_SELECT_FOLDER = "com.ipaulpro.afilechooser.EXTRA_SELECT_FOLDER";
+    private boolean mSelectFolder = false;
     private ArrayList<String> mFilterIncludeExtensions = new ArrayList<String>();
     public static final String EXTERNAL_BASE_PATH = Environment
             .getExternalStorageDirectory().getAbsolutePath();
@@ -72,7 +75,10 @@ public class FileChooserActivity extends FragmentActivity implements
 
         Intent intent = getIntent();
         if (intent != null) {
-            mFilterIncludeExtensions = intent.getStringArrayListExtra(EXTRA_FILTER_INCLUDE_EXTENSIONS);
+            if (intent.hasExtra(EXTRA_FILTER_INCLUDE_EXTENSIONS)) {
+                mFilterIncludeExtensions = intent.getStringArrayListExtra(EXTRA_FILTER_INCLUDE_EXTENSIONS);
+            }
+            mSelectFolder = intent.getBooleanExtra(EXTRA_SELECT_FOLDER, false);
         }
 
         mFragmentManager = getSupportFragmentManager();
@@ -109,6 +115,7 @@ public class FileChooserActivity extends FragmentActivity implements
         outState.putString(PATH, mPath);
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     public void onBackStackChanged() {
 
@@ -121,10 +128,12 @@ public class FileChooserActivity extends FragmentActivity implements
         }
 
         setTitle(mPath);
-        if (HAS_ACTIONBAR)
+        if (HAS_ACTIONBAR) {
             invalidateOptionsMenu();
+        }
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (HAS_ACTIONBAR) {
@@ -153,7 +162,7 @@ public class FileChooserActivity extends FragmentActivity implements
      * Add the initial Fragment with given path.
      */
     private void addFragment() {
-        FileListFragment fragment = FileListFragment.newInstance(mPath, mFilterIncludeExtensions);
+        FileListFragment fragment = FileListFragment.newInstance(mPath, mFilterIncludeExtensions, mSelectFolder);
         mFragmentManager.beginTransaction()
                 .add(android.R.id.content, fragment).commit();
     }
@@ -167,7 +176,7 @@ public class FileChooserActivity extends FragmentActivity implements
     private void replaceFragment(File file) {
         mPath = file.getAbsolutePath();
 
-        FileListFragment fragment = FileListFragment.newInstance(mPath, mFilterIncludeExtensions);
+        FileListFragment fragment = FileListFragment.newInstance(mPath, mFilterIncludeExtensions, mSelectFolder);
         mFragmentManager.beginTransaction()
                 .replace(android.R.id.content, fragment)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
@@ -179,7 +188,7 @@ public class FileChooserActivity extends FragmentActivity implements
      *
      * @param file The file selected.
      */
-    private void finishWithResult(File file) {
+    protected void finishWithResult(File file) {
         if (file != null) {
             Uri uri = Uri.fromFile(file);
             setResult(RESULT_OK, new Intent().setData(uri));

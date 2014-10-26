@@ -55,6 +55,7 @@ public class FileListFragment extends ListFragment implements
     private FileListAdapter mAdapter;
     private String mPath;
     private ArrayList<String> mFilterIncludeExtensions = new ArrayList<String>();
+    private boolean mSelectFolder = false;
 
     private Callbacks mListener;
 
@@ -65,12 +66,14 @@ public class FileListFragment extends ListFragment implements
      * @return A new Fragment with the given file path.
      */
     public static FileListFragment newInstance(String path, ArrayList<String>
-            filterIncludeExtensions) {
+            filterIncludeExtensions, boolean selectFolder) {
         FileListFragment fragment = new FileListFragment();
         Bundle args = new Bundle();
         args.putString(FileChooserActivity.PATH, path);
         args.putStringArrayList(FileChooserActivity.EXTRA_FILTER_INCLUDE_EXTENSIONS,
                 filterIncludeExtensions);
+        args.putBoolean(FileChooserActivity.EXTRA_SELECT_FOLDER, selectFolder);
+
         fragment.setArguments(args);
 
         return fragment;
@@ -92,14 +95,15 @@ public class FileListFragment extends ListFragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mAdapter = new FileListAdapter(getActivity());
-        mPath = getArguments() != null ? getArguments().getString(
-                FileChooserActivity.PATH) : Environment
-                .getExternalStorageDirectory().getAbsolutePath();
+        mPath = Environment.getExternalStorageDirectory().getAbsolutePath();
         if (getArguments() != null) {
+            mPath = getArguments().getString(FileChooserActivity.PATH);
             mFilterIncludeExtensions = getArguments().getStringArrayList(
                     FileChooserActivity.EXTRA_FILTER_INCLUDE_EXTENSIONS);
+            mSelectFolder = getArguments().getBoolean(
+                    FileChooserActivity.EXTRA_SELECT_FOLDER, false);
         }
+        mAdapter = new FileListAdapter(getActivity(), mSelectFolder);
     }
 
     @Override
