@@ -42,6 +42,9 @@ proguard/
 *.iws
 .idea/
 
+# gradle files
+.gradle/
+
 # OSX files
 .DS_Store
 

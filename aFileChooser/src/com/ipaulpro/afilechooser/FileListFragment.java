@@ -26,13 +26,14 @@ import android.view.View;
 import android.widget.ListView;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Fragment that displays a list of Files in a given path.
- * 
- * @version 2013-12-11
+ *
  * @author paulburke (ipaulpro)
+ * @version 2013-12-11
  */
 public class FileListFragment extends ListFragment implements
         LoaderManager.LoaderCallbacks<List<File>> {
@@ -53,6 +54,7 @@ public class FileListFragment extends ListFragment implements
 
     private FileListAdapter mAdapter;
     private String mPath;
+    private ArrayList<String> mFilterIncludeExtensions = new ArrayList<String>();
 
     private Callbacks mListener;
 
@@ -62,10 +64,13 @@ public class FileListFragment extends ListFragment implements
      * @param path The absolute path of the file (directory) to display.
      * @return A new Fragment with the given file path.
      */
-    public static FileListFragment newInstance(String path) {
+    public static FileListFragment newInstance(String path, ArrayList<String>
+            filterIncludeExtensions) {
         FileListFragment fragment = new FileListFragment();
         Bundle args = new Bundle();
         args.putString(FileChooserActivity.PATH, path);
+        args.putStringArrayList(FileChooserActivity.EXTRA_FILTER_INCLUDE_EXTENSIONS,
+                filterIncludeExtensions);
         fragment.setArguments(args);
 
         return fragment;
@@ -91,6 +96,10 @@ public class FileListFragment extends ListFragment implements
         mPath = getArguments() != null ? getArguments().getString(
                 FileChooserActivity.PATH) : Environment
                 .getExternalStorageDirectory().getAbsolutePath();
+        if (getArguments() != null) {
+            mFilterIncludeExtensions = getArguments().getStringArrayList(
+                    FileChooserActivity.EXTRA_FILTER_INCLUDE_EXTENSIONS);
+        }
     }
 
     @Override
@@ -116,7 +125,7 @@ public class FileListFragment extends ListFragment implements
 
     @Override
     public Loader<List<File>> onCreateLoader(int id, Bundle args) {
-        return new FileLoader(getActivity(), mPath);
+        return new FileLoader(getActivity(), mPath, mFilterIncludeExtensions);
     }
 
     @Override
